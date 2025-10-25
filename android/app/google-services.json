@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "616730094469",
+    "project_id": "diwali-sweets-biller",
+    "storage_bucket": "diwali-sweets-biller.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:616730094469:android:2b7c2dd647c68c7c7c72ec",
+        "android_client_info": {
+          "package_name": "com.example.diwali_sweets_biller"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5ShOPLjaqagZxzG2TGW3xEreFgXFGZlA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
