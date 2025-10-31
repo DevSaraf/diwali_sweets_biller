@@ -1,6 +1,6 @@
 # diwali_sweets_biller
 
-Billinng platform for diwali sweets sellers.
+Billing platform for diwali sweets and snacks sellers.
 
 ## Getting Started
 
