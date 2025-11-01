@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 enum OrderStatus { pending, done }
 
@@ -206,6 +207,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
+
+                // --- NEW LOGOUT BUTTON ADDED HERE ---
+                const SizedBox(height: 10), // Adds space
+                // This is at the bottom of your HomeScreen's Column
+
+                // This is your new, functional button
+
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      FirebaseAuth.instance.signOut();
+                    },
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Logout'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red, // Make the button red
+                    ),
+                  ),
+                ),
+                // ------------------------------------
               ],
             ),
           ),
