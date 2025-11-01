@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Make sure this import is here
 
 enum OrderStatus { pending, done }
 
@@ -47,30 +47,47 @@ class _HomeScreenState extends State<HomeScreen> {
     _addItem();
   }
 
+  // --- THIS IS THE FUNCTION YOU WERE LOOKING FOR ---
   void _generateAndSaveBill() async {
     if (!_formKey.currentState!.validate()) { return; }
     setState(() { _isSaving = true; });
 
     try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('orders')
-          .orderBy('receiptNumber', descending: true)
-          .limit(1)
-          .get();
+      // 1. Get a reference to a special 'counters' document
+      final counterRef = FirebaseFirestore.instance.collection('counters').doc('orders');
 
       int nextReceiptNumber = 1;
-      if (querySnapshot.docs.isNotEmpty) {
-        final lastReceiptNumber = querySnapshot.docs.first.data()['receiptNumber'] as int;
-        nextReceiptNumber = lastReceiptNumber + 1;
-      }
 
+      // 2. Run a "transaction" to safely get the next number
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final counterSnapshot = await transaction.get(counterRef);
+
+        if (!counterSnapshot.exists) {
+          // If it's the first bill ever, create the counter
+          transaction.set(counterRef, {'lastNumber': 1});
+          nextReceiptNumber = 1;
+        } else {
+          // Otherwise, get the last number and increment it
+          final lastNumber = counterSnapshot.data()!['lastNumber'] as int;
+          nextReceiptNumber = lastNumber + 1;
+          transaction.update(counterRef, {'lastNumber': nextReceiptNumber});
+        }
+      });
+      // --- End of counter logic ---
+
+      // 3. Get Device Name
       String deviceName = 'Unknown Device';
-      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-      if (Platform.isAndroid) {
-        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
+      try {
+        DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+        if (Platform.isAndroid) {
+          AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+          deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
+        }
+      } catch (e) {
+        print('Failed to get device info: $e');
       }
 
+      // 4. Create the new order
       final newOrder = Order(
         receiptNumber: nextReceiptNumber,
         customerName: _customerNameController.text,
@@ -83,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
         orderDate: Timestamp.now(),
       );
 
+      // 5. Save the order
       await FirebaseFirestore.instance.collection('orders').add(newOrder.toMap());
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Colors.green, content: Text('Bill successfully saved!')));
       _clearForm();
@@ -207,13 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16), textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
-
-                // --- NEW LOGOUT BUTTON ADDED HERE ---
-                const SizedBox(height: 10), // Adds space
-                // This is at the bottom of your HomeScreen's Column
-
-                // This is your new, functional button
-
+                const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: TextButton.icon(
@@ -223,11 +235,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: const Icon(Icons.logout),
                     label: const Text('Logout'),
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.red, // Make the button red
+                      foregroundColor: Colors.red,
                     ),
                   ),
                 ),
-                // ------------------------------------
               ],
             ),
           ),
