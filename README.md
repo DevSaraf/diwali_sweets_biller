@@ -2,6 +2,9 @@
 
 Billing platform for diwali sweets and snacks sellers.
 
+Download APK:
+https://github.com/DevSaraf/diwali_sweets_biller/releases/download/v1.0.0/app-release.apk
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
